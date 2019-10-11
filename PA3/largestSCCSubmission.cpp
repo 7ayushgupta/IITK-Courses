@@ -3,7 +3,6 @@
 #include <iostream>
 using namespace std;
 typedef long long ll;
-ll TIME;
 ll path_length = 0;
 
 typedef struct node_template
@@ -60,9 +59,6 @@ class Graph : public Stack
         node ** Adj;
         node ** AdjT;
         ll* color; //0: white, 1: gray, 2: black
-        ll* discovery_time;
-        ll* finishing_time;
-        ll* predecessor;
         Stack stack;
         Graph(ll, ll);    
         void performInput();
@@ -112,9 +108,6 @@ Graph::Graph(ll v, ll e)
         AdjT[i] = NULL;
     }
     V = v; E=e;
-    discovery_time = (ll *)malloc(v*sizeof(ll));
-    finishing_time = (ll *)malloc(v*sizeof(ll));
-    predecessor = (ll *)malloc(v*sizeof(ll));
     color = (ll *)malloc(v*sizeof(ll));
     stack = Stack();
 }
@@ -167,8 +160,6 @@ void Graph::performInput()
 
 void Graph::DFS_Visit(ll u)
 {
-    TIME=TIME+1;
-    this->discovery_time[u] = TIME;
     this->color[u] = 1;
     node* ptr;
     ptr = this->Adj[u];
@@ -177,14 +168,11 @@ void Graph::DFS_Visit(ll u)
         node* pointed_node = ptr;
         if(this->color[pointed_node->key] == 0)
         {
-            this->predecessor[pointed_node->key]=u;
             this->DFS_Visit(pointed_node->key);
         }
         ptr=ptr->next;
     }
     this->color[u] = 2;
-    TIME=TIME+1;
-    this->finishing_time[u] = TIME;
     this->stack.push(u);
 }
 
@@ -193,9 +181,7 @@ void Graph::DFS()
     for (int i = 0; i<this->V; i++)
     {
         this->color[i] = 0;
-        this->predecessor[i] = -1;
     }
-    TIME=0;
     for (int i = 0; i<this->V; i++)
     {
         if((this->color[i]) == 0)
@@ -209,7 +195,6 @@ void Graph::DFS_Modified()
     for (int i = 0; i<this->V; i++)
     {
         this->color[i] = 0;
-        this->predecessor[i] = -1;
     }
     while(!this->stack.isEmpty())
     {
