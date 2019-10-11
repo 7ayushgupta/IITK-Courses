@@ -2,27 +2,24 @@
 #include <cstdio>
 #include <iostream>
 using namespace std;
-typedef long long ll;
-ll TIME;
-ll path_length = 0;
 
 typedef struct node_template
 {
-    ll key;
+    int key;
     node_template* next;
 }node;
 
 class Queue{
     public:
-        ll capacity=100001;
-        ll front;
-        ll back;
-        ll size;
-        ll arr[100001];
+        int capacity=1000001;
+        int front;
+        int back;
+        int size;
+        int arr[1000001]={0};
     
         Queue();
-        void enqueue(ll c);
-        ll dequeue();
+        void enqueue(int c);
+        int dequeue();
         bool isEmpty();
 };
 
@@ -33,7 +30,7 @@ Queue::Queue()
     size=0;
 }
 
-void Queue::enqueue(ll c)
+void Queue::enqueue(int c)
 {
     this->back = (this->back + 1) % this->capacity;  
     this->arr[this->back] = c;  
@@ -45,14 +42,14 @@ bool Queue::isEmpty()
     return ((this->size)==0);
 }
 
-ll Queue::dequeue()
+int Queue::dequeue()
 {
     if (this->isEmpty())  
     {
         cout<<"Underflow"<<endl;
         return -1;
     } 
-    ll item = this->arr[this->front];  
+    int item = this->arr[this->front];  
     this->front = (this->front + 1) % this->capacity;  
     this->size = this->size - 1;  
     return item;  
@@ -62,14 +59,12 @@ ll Queue::dequeue()
 class Graph : public Queue
 {
     public: 
-        ll V, E;
+        int V, E;
         node ** Adj;
-        node ** AdjT;
-        ll* color; //0: white, 1: gray, 2: black    
-        ll* distance;
-        ll* predecessor;
+        int* color; //0: white, 1: gray, 2: black    
+        int* distance;
         Queue queue;
-        Graph(ll, ll);    
+        Graph(int, int);    
         void performInput();
         bool bipartiteBFS();
         void printAdjacencyList();
@@ -77,7 +72,7 @@ class Graph : public Queue
 
 void Graph::printAdjacencyList()
 {
-    for (int i = 0; i < this->V; i++) 
+    for (int i = 0; i <=this->V; i++) 
     { 
         node* ptr;
         ptr = this->Adj[i];
@@ -91,25 +86,24 @@ void Graph::printAdjacencyList()
     }
 }
 
-Graph::Graph(ll v, ll e)
+Graph::Graph(int v, int e)
 {
-    Adj = (node **) malloc (v*sizeof(node *));
-    AdjT = (node **) malloc (v*sizeof(node *));
-    for(ll i = 0; i<v; i++)
+    Adj = (node **) malloc ((v+1)*sizeof(node *));
+    for(int i = 0; i<=v; i++)
     {
         Adj[i] = NULL;
     }
     V = v; E=e;
-    distance = (ll *)malloc(v*sizeof(ll));
-    color = (ll *)malloc(v*sizeof(ll));
+    distance = (int *)malloc((v+1)*sizeof(int));
+    color = (int *)malloc((v+1)*sizeof(int));
     queue = Queue();
 }
 
 void Graph::performInput()
 {
-    for(ll i = 0; i<this->E; i++)
+    for(int i = 0; i<this->E; i++)
     {
-        ll vert1, vert2;
+        int vert1, vert2;
         cin>>vert1>>vert2;
         node* node1 = (node*) malloc(sizeof(node));
         node* node2 = (node*) malloc(sizeof(node));
@@ -120,7 +114,7 @@ void Graph::performInput()
         if(Adj[vert1] == NULL)
         {
             Adj[vert1] = node1;
-            // Adj[vert1]->next = node2;    
+            Adj[vert1]->next = node2;    
         }
         else
         {
@@ -136,14 +130,14 @@ void Graph::performInput()
         node4->key = vert1;
         node3->next = NULL;
         node4->next = NULL;
-        if(AdjT[vert2] == NULL)
+        if(Adj[vert2] == NULL)
         {
-            AdjT[vert2] = node3;
-            // AdjT[vert2]->next = node4;    
+            Adj[vert2] = node3;
+            Adj[vert2]->next = node4;    
         }
         else
         {
-            node *temp_ptr = AdjT[vert2];
+            node *temp_ptr = Adj[vert2];
             while(temp_ptr->next!=NULL)
                 temp_ptr = temp_ptr->next;
             temp_ptr->next=node4;
@@ -153,37 +147,34 @@ void Graph::performInput()
 
 bool Graph::bipartiteBFS()
 {
-    for (int i = 1; i<this->V; i++)
+    for (int i = 1; i<=this->V; i++)
     {
         this->color[i] = 0;
-        this->distance[i] = INFINITY;
+        this->distance[i] = __INT_MAX__;
     }
-    this->color[0] = 1;
-    this->distance[0] = 0;
-    this->predecessor[0] = -1;
-    queue.enqueue(0);
+    int s = 1;
+    this->color[s] = 1;
+    this->distance[s] = 0;
+    queue.enqueue(s);
 
     while(!queue.isEmpty())
     {
-        ll u = queue.dequeue();
+        int u = queue.dequeue();
         node* ptr;
-        ptr = this->Adj[u];
+        ptr = this->Adj[u]->next;
         while(ptr!=NULL)
         {
-            node* pointed_node = ptr;
-            if (color[pointed_node->key] == 0) 
+            node* v = ptr;
+            if (color[v->key] == 0) 
             {
-                color[pointed_node->key] = 1;
-                distance[pointed_node->key] = distance[u]+1;
-                queue.enqueue(pointed_node->key);
+                color[v->key] = 1;
+                distance[v->key] = distance[u]+1;
+                queue.enqueue(v->key);
             }
-            else if(distance[u] == distance[pointed_node->key])
-            {
+            else if(distance[v->key] == distance[u])
                 return false;
-            }
             ptr=ptr->next;
         }
-        color[u]=2;
     }
     return true;
 }
@@ -195,7 +186,7 @@ int main()
     cin>>t;
     while(t--)
     {
-        ll v, e;
+        int v, e;
         cin>>v>>e;
         Graph graph(v, e);
         graph.performInput();
