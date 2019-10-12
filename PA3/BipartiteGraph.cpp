@@ -11,11 +11,10 @@ typedef struct node_template
 
 class Queue{
     public:
-        int capacity=1000001;
+        int capacity=10001;
         int front;
         int back;
-        int size;
-        int arr[1000001]={0};
+        int arr[10001]={0};
     
         Queue();
         void enqueue(int c);
@@ -25,34 +24,42 @@ class Queue{
 
 Queue::Queue()
 {
-    this->front=0;
-    this->back=this->capacity-1;
-    size=0;
+    this->front=-1;
+    this->back=-1;
 }
 
 void Queue::enqueue(int c)
 {
-    this->back = (this->back + 1) % this->capacity;  
-    this->arr[this->back] = c;  
-    this->size = this->size + 1;  
+    if(this->back == this->capacity - 1)
+        printf("Queue is actually full\n");
+    else
+    {
+        if(this->front == -1)
+            this->front = 0;
+        this->back++;
+        arr[this->back] = c;   
+    }
 }
 
 bool Queue::isEmpty()
 {
-    return ((this->size)==0);
+    return (this->front==-1);
 }
 
 int Queue::dequeue()
 {
-    if (this->isEmpty())  
+    if(this->front == -1)
     {
-        cout<<"Underflow"<<endl;
-        return -1;
-    } 
-    int item = this->arr[this->front];  
-    this->front = (this->front + 1) % this->capacity;  
-    this->size = this->size - 1;  
-    return item;  
+        printf("Queue is Empty\n");
+        return -__INT_MAX__;
+    }
+    else{
+        int temp = this->arr[this->front];
+        this->front++;
+        if(this->front > this->back)
+            this->front = this->back = -1;
+        return temp;
+    }
 }  
   
 
@@ -61,12 +68,13 @@ class Graph : public Queue
     public: 
         int V, E;
         node ** Adj;
-        int* color; //0: white, 1: gray, 2: black    
+        int* color;   
         int* distance;
         Queue queue;
         Graph(int, int);    
         void performInput();
-        bool bipartiteBFS();
+        bool bipartiteBFS(int);
+        bool isBipartite();
         void printAdjacencyList();
 };
 
@@ -93,7 +101,8 @@ Graph::Graph(int v, int e)
     {
         Adj[i] = NULL;
     }
-    V = v; E=e;
+    V = v; 
+    E=e;
     distance = (int *)malloc((v+1)*sizeof(int));
     color = (int *)malloc((v+1)*sizeof(int));
     queue = Queue();
@@ -104,70 +113,39 @@ void Graph::performInput()
     for(int i = 0; i<this->E; i++)
     {
         int vert1, vert2;
-        cin>>vert1>>vert2;
-        node* node1 = (node*) malloc(sizeof(node));
-        node* node2 = (node*) malloc(sizeof(node));
-        node1->key = vert1;
-        node2->key = vert2;
-        node1->next = NULL;
-        node2->next = NULL;
-        if(Adj[vert1] == NULL)
-        {
-            Adj[vert1] = node1;
-            Adj[vert1]->next = node2;    
-        }
-        else
-        {
-            node *temp_ptr = Adj[vert1];
-            while(temp_ptr->next!=NULL)
-                temp_ptr = temp_ptr->next;
-            temp_ptr->next=node2;
-        }
-        
-        node* node3 = (node*) malloc(sizeof(node));
-        node* node4 = (node*) malloc(sizeof(node));
-        node3->key = vert2;
-        node4->key = vert1;
-        node3->next = NULL;
-        node4->next = NULL;
-        if(Adj[vert2] == NULL)
-        {
-            Adj[vert2] = node3;
-            Adj[vert2]->next = node4;    
-        }
-        else
-        {
-            node *temp_ptr = Adj[vert2];
-            while(temp_ptr->next!=NULL)
-                temp_ptr = temp_ptr->next;
-            temp_ptr->next=node4;
-        }
+        scanf("%d %d\n", &vert1, &vert2);
+        node* new_node1 = (node*) malloc(sizeof(node));
+        new_node1->key=vert2;
+        new_node1->next=this->Adj[vert1];
+        this->Adj[vert1] = new_node1;
+
+        node* new_node2 = (node*) malloc(sizeof(node));
+        new_node2->key=vert1;
+        new_node2->next=this->Adj[vert2];
+        this->Adj[vert2] = new_node2;
     }
 }
 
-bool Graph::bipartiteBFS()
+bool Graph::bipartiteBFS(int s)
 {
-    for (int i = 1; i<=this->V; i++)
-    {
-        this->color[i] = 0;
-        this->distance[i] = __INT_MAX__;
-    }
-    int s = 1;
-    this->color[s] = 1;
+    int current_mark = 1;
+    this->color[s] = current_mark;
     this->distance[s] = 0;
     queue.enqueue(s);
-
     while(!queue.isEmpty())
     {
         int u = queue.dequeue();
         node* ptr;
-        ptr = this->Adj[u]->next;
+        ptr = this->Adj[u];
         while(ptr!=NULL)
         {
             node* v = ptr;
+            if(v->key == u)
+                return false;
             if (color[v->key] == 0) 
             {
-                color[v->key] = 1;
+                current_mark=current_mark*-1;
+                color[v->key] = current_mark;
                 distance[v->key] = distance[u]+1;
                 queue.enqueue(v->key);
             }
@@ -179,18 +157,41 @@ bool Graph::bipartiteBFS()
     return true;
 }
 
+bool Graph::isBipartite()
+{
+    for (int i = 0; i<=this->V; i++)
+    {
+        this->color[i] = 0;
+        this->distance[i] = __INT_MAX__;
+    }
+    for (int i = 1; i <= this->V; i++) 
+    {
+        if (this->color[i] == 0) 
+        {
+            if (bipartiteBFS(i) == false) 
+                return false; 
+        }
+     }
+    return true; 
+}
+
 int main() 
 {
     /* Enter your code here. Read input from STDIN. Print output to STDOUT */   
     int t;
-    cin>>t;
+    scanf("%d\n", &t);
     while(t--)
     {
         int v, e;
-        cin>>v>>e;
+        scanf("%d %d\n", &v, &e);
+        if(e==0)
+        {
+            cout<<"Yes"<<endl;
+            continue;
+        }            
         Graph graph(v, e);
         graph.performInput();
-        if(graph.bipartiteBFS())
+        if(graph.isBipartite())
             cout<<"Yes"<<endl;
         else
             cout<<"No"<<endl;
