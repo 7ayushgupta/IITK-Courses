@@ -25,16 +25,12 @@ class Graph
         ll* discovery_time;
         ll* alternative_time;
         ll* predecessor;
-        edge* bridges;
         int bridges_count;
         Graph(ll, ll);    
         void performInput();
         void DFS();
         void bridgeChecker(ll);
         void printAdjacencyList();
-        void resultSaver(ll, ll);
-        void printAnswer();
-        void positionSwap(edge *, edge *);
 };
 
 void Graph::printAdjacencyList()
@@ -65,7 +61,6 @@ Graph::Graph(ll v, ll e)
     alternative_time = (ll *)malloc(v*sizeof(ll));
     predecessor = (ll *)malloc(v*sizeof(ll));
     color = (ll *)malloc(v*sizeof(ll));
-    bridges = (edge *) malloc(v*sizeof(edge));
     bridges_count = 0;
 }
 
@@ -87,16 +82,6 @@ void Graph::performInput()
     }
 }
 
-void Graph::resultSaver(ll a, ll b)
-{
-    this->bridges[this->bridges_count].u = a;
-    this->bridges[this->bridges_count].v = b;
-    this->bridges_count++;
-    // for(int i = 0; i<this->bridges_count; i++)
-    //     cout<<this->bridges[i].u<<" "<<this->bridges[i].v<<endl;
-
-}
-
 void Graph::bridgeChecker(ll i)
 {
     static ll TIME = 0; 
@@ -114,7 +99,10 @@ void Graph::bridgeChecker(ll i)
             this->bridgeChecker(ptr->key);
             this->alternative_time[i] = min(this->alternative_time[i], this->alternative_time[ptr->key]);
             if(this->alternative_time[ptr->key] > this->discovery_time[i])
-                resultSaver(i, ptr->key);
+            {
+                cout<<ptr->key<<" "<<i<<endl;
+                this->bridges_count++;
+            }
         }
         else if(ptr->key != this->predecessor[i])
             this->alternative_time[i] = min(this->alternative_time[i], this->discovery_time[ptr->key]);
@@ -130,37 +118,9 @@ void Graph::DFS()
         this->predecessor[i] = NULL; 
         this->color[i] = 0; 
     }   
-    for (int i = 0; i < this->V; i++)
+    for (int i = this->V-1; i>0; i--)
         if (this->color[i] == 0) 
             this->bridgeChecker(i); 
-}
-
-void Graph::positionSwap(edge *xp, edge *yp)  
-{  
-    edge temp = *xp;  
-    *xp = *yp;  
-    *yp = temp;  
-}  
-  
-void Graph::printAnswer()
-{
-    if(this->bridges_count == 0)
-        cout<<"No"<<endl;
-    else
-    {
-        for (int i = 0; i < this->bridges_count-1; i++)        
-        {   
-            for (int j = 0; j < this->bridges_count-i-1; j++)          
-            {
-                if(bridges[j].u > bridges[j + 1].u)
-                    positionSwap(&bridges[j], &bridges[j+1]);
-                if(bridges[j].u == bridges[j + 1].u && bridges[j].v > bridges[j+1].v)
-                    positionSwap(&bridges[j], &bridges[j+1]);
-            }
-        }
-        for(int i = 0; i<this->bridges_count; i++)
-            cout<<this->bridges[i].u<<" "<<this->bridges[i].v<<endl;
-    }
 }
 
 int main() 
@@ -171,6 +131,7 @@ int main()
     Graph graph(v, e);
     graph.performInput();
     graph.DFS();
-    graph.printAnswer();
+    if(graph.bridges_count==0)
+        cout<<"No"<<endl;
     return 0;
 }
