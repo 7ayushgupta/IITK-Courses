@@ -8,7 +8,7 @@ class Graph
 {
     public:
     ll V, E;
-    int Adj[2501][2501];
+    int Adj[2505][2505];
     int* color;   
     int* distance;
     Graph(ll, ll);   
@@ -19,6 +19,9 @@ class Graph
 
 Graph::Graph(ll v, ll e)
 {
+    for(int i = 0; i<v; i++)
+        for(int j=0; j<v; j++)
+            Adj[i][j]=-__INT_MAX__;
     V = v; 
     E = e;
     distance = (int *) malloc(v*sizeof(int));
@@ -27,10 +30,10 @@ Graph::Graph(ll v, ll e)
 
 void Graph::performInput()
 {
-    for(int i = 0; i<this->E; i++)
+    for(ll i = 0; i<this->E; i++)
     {
-        int vert1, vert2, weight;
-        scanf("%d %d %d\n", &vert1, &vert2, &weight);
+        ll vert1, vert2, weight;
+        scanf("%lld %lld %lld", &vert1, &vert2, &weight);
         Adj[vert1][vert2] = weight;
     }
 }
@@ -64,7 +67,7 @@ void Graph::Djisktra(ll s)
         this->color[closeNeighbour]=1;
         for (int j = 0; j<this->V; j++)
         { 
-            if (!this->color[j] && Adj[closeNeighbour][j] && this->distance[closeNeighbour] != __INT_MAX__ && this->distance[closeNeighbour] + this->Adj[closeNeighbour][j] < this->distance[j]) 
+            if (!this->color[j] && Adj[closeNeighbour][j]!=-__INT_MAX__ && this->distance[closeNeighbour] != __INT_MAX__ && this->distance[closeNeighbour] + this->Adj[closeNeighbour][j] < this->distance[j]) 
                 this->distance[j] = this->distance[closeNeighbour] + this->Adj[closeNeighbour][j];
         }
     } 
@@ -73,12 +76,13 @@ void Graph::Djisktra(ll s)
 
 int main() 
 {
+    ios_base::sync_with_stdio(false);
     ll v, e, s, t;
-    cin>>v>>e;
+    scanf("%lld %lld\n", &v, &e);
     Graph graph(v, e);
     graph.performInput();
-    cin>>s>>t;
+    scanf("%lld %lld\n", &s, &t);
     graph.Djisktra(s);
-    cout<<graph.distance[t];
+    printf("%lld", graph.distance[t]);
     return 0;
 }
