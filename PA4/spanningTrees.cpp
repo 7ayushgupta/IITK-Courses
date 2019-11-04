@@ -14,17 +14,16 @@ typedef struct edge_template
 class Graph
 {
      public:
-     int V, E;
-     edge* edges;
-     int* color;   
-     int* distance;
-     Graph(int, int);    
+     ll V, E;
+     edge* edges;   
+     Graph(ll, ll);    
      void performInput();
      void sortEdges(ll, ll);
      void mergeEdges(ll, ll, ll);
      void reallocEdges(edge);
      ll KruskalMST(); 
      ll findSet(ll *, ll);
+     void simpleSort();
      void printEdges();
 };
 
@@ -35,22 +34,18 @@ void Graph::printEdges()
     cout<<endl;
 }
 
-Graph::Graph(int v, int e)
+Graph::Graph(ll v, ll e)
 {
     edges = (edge *) malloc(e*sizeof(edge));
     V=v; E=e;
-    distance = (int *)malloc((v+1)*sizeof(int));
-    color = (int *)malloc((v+1)*sizeof(int));
 }
 
 void Graph::performInput()
 {
     for(int i = 0; i<this->E; i++)
-        cin>>edges[i].u>>edges[i].v>>edges[i].weight;
+        // cin>>edges[i].u>>edges[i].v>>edges[i].weight;
+        scanf("%lld %lld %lld", &(edges[i]).u, &(edges[i]).v, &(edges[i]).weight);
 
-    // for(int i = 0; i<this->E; i++)
-    //     cout<<edges[i].u<<edges[i].v<<edges[i].weight;   
-    // cout
 }
 
 void Graph::sortEdges(ll m, ll n)
@@ -65,16 +60,40 @@ void Graph::sortEdges(ll m, ll n)
     return;
 }
 
+void Graph::simpleSort()
+{
+    edge* updated_edges = (edge *) malloc((this->E)*sizeof(edge));
+    edge new_edge = edges[this->E-1];
+    ll position;
+    for(ll i = 0; i<this->E-2; i++)
+        if(edges[i].weight>new_edge.weight)
+        {    
+            position=i;
+            break;
+        }
+    for(ll i = 0; i<position; i++)
+        updated_edges[i] = edges[i];
+    
+    updated_edges[position] = new_edge;
+    
+    for(ll i = position+1; i<this->E; i++)
+        updated_edges[i] = edges[i-1];
+    
+    edges = updated_edges;
+}
+
 void Graph::mergeEdges(ll p, ll q, ll r)
 {
-    edge leftPortion[q-p+1];
+    edge leftPortion[q-p+2];
     edge rightPortion[r-q+1];
-    for(int i = p, count = 0; i<=q; i++)
+    int count, i, a, b;
+    for(i = p, count = 0; i<=q; i++)
         leftPortion[count++] = this->edges[i];
-    for(int i = q+1, count = 0; i<=r; i++)
+    leftPortion[count].weight=__INT_MAX__;
+    for(i = q+1, count = 0; i<=r; i++)
         rightPortion[count++] = this->edges[i];
-
-    for(int i=p, a=0, b=0; i<=q && a<q-p+1 && b<r-q+1; i++)
+    rightPortion[count].weight=__INT_MAX__;
+    for(i=p, a=0, b=0; i<=r; i++)
     {
         if(leftPortion[a].weight<=rightPortion[b].weight)
             this->edges[i] = leftPortion[a++];
@@ -82,6 +101,7 @@ void Graph::mergeEdges(ll p, ll q, ll r)
             this->edges[i] = rightPortion[b++];
     }
     return;
+    
 }
 
 ll Graph::findSet(ll *sets, ll a)
@@ -93,7 +113,6 @@ ll Graph::findSet(ll *sets, ll a)
 
 ll Graph::KruskalMST()
 {
-    //cout<<"Inside KRUSKAL"<<endl;
     ll result = 0;
     ll* sets = (ll *) malloc(sizeof(ll)*this->V);
     for (ll i = 0; i<this->V; i++)
@@ -104,11 +123,9 @@ ll Graph::KruskalMST()
             break;
         ll findSetA = findSet(sets, this->edges[i].u);
         ll findSetB = findSet(sets, this->edges[i].v);
-        //cout<<findSetA<<" "<<findSetB<<endl;
         if(findSetA == findSetB)
             continue;
         edgesAdded++;
-        //cout<<"Edge added weight: "<<edges[i].weight<<endl;
         result+=edges[i].weight;
         ll unionSetA = findSet(sets, findSetA);
         ll unionSetB = findSet(sets, findSetB);
@@ -120,118 +137,58 @@ ll Graph::KruskalMST()
 }
 
 void Graph::reallocEdges(edge new_edge)
-{
-    bool alreadyPresent = false;
-    ll presentPosition = -1;
-    for(int i = 0; i<this->E && !alreadyPresent; i++)
-    {
-            if(edges[i].u==new_edge.u && edges[i].v==new_edge.v)
-            {
-                alreadyPresent=true;
-                presentPosition=i;
-            }
-    }
-    //cout<<"already at:"<<presentPosition<<endl;
+{   
     this->E++;
-    if(alreadyPresent==false)
-    {
-        bool alreadyInserted=false;
-        edge* updated_edges = (edge *) malloc((this->E)*sizeof(edge));
-        ll entries=0;
-
-        for(int i = 0; i<this->E-1; i++)
-        {
-          //  cout<<"i: "<<i<<", alreadyInserted: "<<alreadyInserted<<endl;
-            if(!alreadyInserted)
-            {
-                if(edges[i].weight>new_edge.weight)
-                {
-             //       cout<<"HERE1"<<endl;
-                    updated_edges[entries++]=new_edge;
-                    alreadyInserted = true;
-                }
-                else
-                {
-             //       cout<<"HERE2"<<endl;
-                    updated_edges[entries++]=edges[i];
-                }
-            }
-            else
-            {
-                updated_edges[entries++]=edges[i];
-             //   cout<<"HERE3"<<endl;
-            }
-            // for (int j = 0; j < entries; j++) 
-            //     cout<<updated_edges[j].weight<<", ";
-            // cout<<endl;
+    edge* updated_edges = (edge *) malloc((this->E)*sizeof(edge));
+    // edge new_edge = edges[this->E-1];
+    ll position;
+    for(ll i = 0; i<this->E-2; i++)
+        if(edges[i].weight>new_edge.weight)
+        {    
+            position=i;
+            break;
         }
-        if(!alreadyInserted)
-            updated_edges[this->E-1]=new_edge;
-        else
-            updated_edges[this->E-1]=edges[this->E-2];
-        // for (int j = 0; j < entries; j++) 
-        //         cout<<updated_edges[j].weight<<", ";
-        //     cout<<endl;
-      //  cout<<"alreadyInserted: "<<alreadyInserted<<endl;
-        this->edges = updated_edges;
-        // cout<<"Updated: "<<endl;
-       // printEdges();
-    }
-    if(alreadyPresent==true)
-    {
-        bool alreadyInserted=false;
-        edge* updated_edges = (edge *) malloc((this->E)*sizeof(edge));
-        ll entries=0, h=0;
-        // cout<<"NEw edge weight:"<<new_edge.weight<<endl;
-        for(int i = 0; i<this->E; i++)
-        {
-            if(i==presentPosition)
-                continue;
-            if(edges[h].weight<new_edge.weight)
-            {
-                // cout<<"i: "<<i<<"j: "<<h<<"HERE1"<<endl;
-                updated_edges[entries++]=edges[h++];
-            }
-            else if(!alreadyInserted)
-            {   
-                // cout<<"i: "<<i<<"h: "<<h<<"HERE2"<<endl;
-                updated_edges[entries++]=new_edge;
-                alreadyInserted=true;
-                updated_edges[entries++]=edges[h++];
-                i++;
-            }
-            else
-                  updated_edges[entries++]=edges[h++];
-            
-            // for (int j = 0; j < entries; j++) 
-            //     cout<<updated_edges[j].weight<<", ";
-            // cout<<endl;
-        }
-        this->edges=updated_edges;
-       // printEdges();
-    }
+    for(ll i = 0; i<position; i++)
+        updated_edges[i] = edges[i];
+    
+    updated_edges[position] = new_edge;
+    
+    for(ll i = position+1; i<this->E; i++)
+        updated_edges[i] = edges[i-1];
+    
+    edges = updated_edges;
+    
+//     this->E++;
+//     edge* updated_edges = (edge *) malloc((this->E)*sizeof(edge));
+//     for(int i = 0; i<this->E-1; i++)
+//         updated_edges[i] = edges[i];
+//     updated_edges[this->E-1] = new_edge;
+//     edge* old_edges = edges;
+//     edges = updated_edges;
+//     free(old_edges);
+//     return;
 }
 
 int main() 
 {
-    /* Enter your code here. Read input from STDIN. Print output to STDOUT */   
-    ios_base::sync_with_stdio(false);
+    // ios_base::sync_with_stdio(false);
     ll v, e, q;
-    cin>>v>>e>>q;
+    // cin>>v>>e>>q;
+    scanf("%lld %lld %lld\n", &v, &e, &q);
     Graph graph(v, e);
     graph.performInput();
-    // graph.printEdges();
     graph.sortEdges(0, e-1);
-    // graph.printEdges();
-    cout<<graph.KruskalMST()<<endl;
+    // cout<<graph.KruskalMST()<<endl;
+    printf("%lld\n", graph.KruskalMST());
     for(int i = 0; i<q; i++)
     {
         edge new_edge;
-        cin>>new_edge.u>>new_edge.v>>new_edge.weight;
+        scanf("%lld %lld %lld", &(new_edge).u, &(new_edge).v, &(new_edge).weight);
+        // cin>>new_edge.u>>new_edge.v>>new_edge.weight;
         graph.reallocEdges(new_edge);
-        // graph.printEdges();
-        cout<<graph.KruskalMST()<<endl;
-        // cout<<"---------------------------------------------------"<<endl;
+        // graph.simpleSort();
+        // cout<<graph.KruskalMST()<<endl;
+        printf("%lld\n", graph.KruskalMST());
     }
     return 0;
 }
