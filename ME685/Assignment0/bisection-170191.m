@@ -17,7 +17,8 @@ if y1*y2<0
        y1 = f(x1);
        y0 = f(x0);
        error = min(abs(y1), abs(y2));
-       
+       fprintf("x1: %f, x2: %f, x0: %f, f(x0): %f, f(x1): %f. f(x2): %f\n", x1, x2, x0, f(x0), f(x1), f(x2));
+
        if error < MAX_ERROR
            if abs(y1)<MAX_ERROR
                x0 = x1;
@@ -27,11 +28,12 @@ if y1*y2<0
        else
            x2 = x0;
        end
-       fprintf("x0: %f, x1: %f, x2: %f, f(x0): %f, f(x1): %f. f(x2): %f\n", x0, x1, x2, f(x0), f(x1), f(x2));
    end
 else
     fprintf("Invalid output %f %f", y1, y2);
 end
+
+fprintf("Root of the function is: %f\n", x0);
     
 function ans = f(x)
     ans = x*tan(x)-1;
