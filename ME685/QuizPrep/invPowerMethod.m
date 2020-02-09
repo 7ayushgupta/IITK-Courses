@@ -2,27 +2,42 @@
 clear all;
 clc;
 
+%declaring the variables as given
 A = [-4 14 0; -5 13 0; -1 0 2];
 I = [1 0 0; 0 1 0; 0 0 1];
 x0 = [1 1 1]';
+MAX_EPSILON=1e-10
 
+%declaring sigma using rayleigh coefficient
 x = x0;
-sigma = rayleigh(A*x, x0);
+sigma = rayleigh(x0, A*x);
 fprintf("Sigma: %s \n", sigma);
 A = A-sigma*I;
 
-max_iters = 100;
+max_iters = 1000;
 curr_iters = 0;
+
+%formula for getting sigma from eigenvalue
 eigenvalue = 1/sigma + sigma;
+eigenvalue_old = 0
 fprintf("Iteration: %d, Eigenvalue: %f, Eigenvector: (%s) \n", curr_iters, eigenvalue, sprintf('%d ', x));
 
 while(curr_iters<max_iters)
     y = gaussian_elimination(A, x);
-    c = rayleigh(x,y);
+    c = rayleigh(x, y);
     eigenvalue = 1/c + sigma;
+    
+    %convergence critera for eigenvalue
+    if(abs((eigenvalue-eigenvalue_old)/eigenvalue_old)<MAX_EPSILON)
+        fprintf("Within convergence criteria: %f", (eigenvalue-eigenvalue_old)/eigenvalue_old);
+        break
+    end
+    eigenvalue_old = eigenvalue;
+    
+    %normalising vector
     x = y/norm(y);
     curr_iters=curr_iters+1;
-    fprintf("Iteration: %d, Eigenvalue: %f, Eigenvector: (%s) \n", curr_iters, eigenvalue, sprintf('%d ', x/norm(x)));
+    fprintf("Iteration: %d, Eigenvalue: %f, Eigenvector: (%s) \n", curr_iters, c, sprintf('%d ', x/norm(x)));
 end
 
 function sigma = rayleigh(x,y)
